@@ -1,0 +1,11 @@
+#wra-func {
+  display: none;
+}
+
+#wra-func.show {
+  display: block;
+}
+
+#btn-update {
+
+}

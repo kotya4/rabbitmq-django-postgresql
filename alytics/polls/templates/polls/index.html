@@ -1,0 +1,99 @@
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'polls/style.css' %}">
+
+<button id="btn-update">Обновить</button>
+
+<button id="btn-add">Добавить</button>
+
+<div id="wra-func">
+  <textarea id="ta-func-textual" placeholder="функция"></textarea>
+  <textarea id="ta-func-dt" placeholder="dt"></textarea>
+  <textarea id="ta-func-interval" placeholder="interval"></textarea>
+  <button id="btn-func-push">push</button>
+</div>
+
+
+<div id="wra-content">
+
+</div>
+
+<script type="text/javascript">
+
+
+
+
+
+
+
+  document.querySelector ( '#btn-update' )
+    .addEventListener ( 'click', () => { /* some ajax here */ } )
+
+
+
+
+
+  let btnAddState = 0
+  document.querySelector ( '#btn-add' )
+    .addEventListener ( 'click', () =>
+      ( btnAddState = btnAddState + 1 & 1 ) ?
+        document.querySelector ( '#wra-func' )
+          .classList.add ( 'show' )
+      : document.querySelector ( '#wra-func' )
+          .classList.remove ( 'show' ) )
+
+
+
+  document.querySelector ( '#btn-func-push' )
+    .addEventListener ( 'click', () => {
+
+      const inputs =
+        [ document.querySelector ( '#ta-func-textual' )
+        , document.querySelector ( '#ta-func-dt' )
+        , document.querySelector ( '#ta-func-interval' )
+        ]
+
+      const [ textual, dt, interval ] = inputs.map ( e => e.value )
+
+      // TODO send values
+
+
+      inputs.forEach ( e => e.value = '' )
+
+      document.querySelector ( '#wra-func' ).classList.remove ( 'show' )
+      btnAddState = 0
+    } )
+
+
+
+
+
+
+
+
+
+    // const sse = new EventSource ( 'sse' )
+
+    // sse.addEventListener ( 'open', (e) => {
+
+    //   console.log(e)
+
+    // })
+
+    // console.log ( sse )
+
+    // sse.onerror = (e) => console.log(e)
+    // // sse.onopen = (e) => console.log(e)
+    // sse.onmessage = (e) => console.log(e)
+
+    // // sse.addEventListener ( 'message', ( e ) => {
+
+    // //   console.log ( e )
+
+    // //   document.querySelector ( '#wra-content' )
+    // //     .innerText += e.data + '\n'
+
+    // // } )
+
+
+</script>
