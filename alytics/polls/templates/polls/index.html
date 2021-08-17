@@ -1,10 +1,12 @@
 {% load static %}
 
 <link rel="stylesheet" type="text/css" href="{% static 'polls/style.css' %}">
+<link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
 
 <button id="btn-update">Обновить</button>
 
 <button id="btn-add">Добавить</button>
+<div id="txt-btn-add-status"></div>
 
 <div id="wra-func">
   <textarea id="ta-func-textual" placeholder="функция"></textarea>
@@ -18,16 +20,22 @@
 
 </div>
 
+
 <script type="text/javascript">
 
-
+  // django needs token placed by him in cookies to make ajax stuff
+  const csrftoken = document.cookie.split ( ';' ) .map ( e => e.split ( '=' ) ) .find ( e => e[ 0 ] === 'csrftoken' )[ 1 ]
 
 
 
 
 
   document.querySelector ( '#btn-update' )
-    .addEventListener ( 'click', () => { /* some ajax here */ } )
+    .addEventListener ( 'click', () => {
+      // ajax.open( "POST", "ajax_test.asp" )
+      // ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+      // ajax.send("fname=Henry&lname=Ford");
+    } )
 
 
 
@@ -47,53 +55,45 @@
   document.querySelector ( '#btn-func-push' )
     .addEventListener ( 'click', () => {
 
+      const status = document.querySelector ( '#txt-btn-add-status' )
+      status.innerText = ''
+
       const inputs =
         [ document.querySelector ( '#ta-func-textual' )
         , document.querySelector ( '#ta-func-dt' )
         , document.querySelector ( '#ta-func-interval' )
         ]
 
+
       const [ textual, dt, interval ] = inputs.map ( e => e.value )
 
-      // TODO send values
+      if ( textual && dt && interval ) {
 
+        const ajax = new XMLHttpRequest ()
+        ajax.open ( 'POST', '/' )
+        ajax.setRequestHeader ( 'Content-type', 'application/json; charset=utf-8' )
+        ajax.setRequestHeader ( 'X-CSRFToken', csrftoken )
+        ajax.send ( JSON.stringify ( { newfunc: { textual, dt, interval } } ) )
+        // ajax.addEventListener ( 'readystatechange', () => {
+        //     if ( this.readyState === XMLHttpRequest.DONE && this.status === 200 ) {
+        //         // Request finished. Do processing here.
+        //     }
+        // } )
 
-      inputs.forEach ( e => e.value = '' )
+        inputs.forEach ( e => e.value = '' )
+        document.querySelector ( '#wra-func' ).classList.remove ( 'show' )
+        btnAddState = 0
 
-      document.querySelector ( '#wra-func' ).classList.remove ( 'show' )
-      btnAddState = 0
+      }
+      else {
+
+        status.innerText = 'textual && dt && interval must be filled properly'
+
+      }
+
     } )
 
 
-
-
-
-
-
-
-
-    // const sse = new EventSource ( 'sse' )
-
-    // sse.addEventListener ( 'open', (e) => {
-
-    //   console.log(e)
-
-    // })
-
-    // console.log ( sse )
-
-    // sse.onerror = (e) => console.log(e)
-    // // sse.onopen = (e) => console.log(e)
-    // sse.onmessage = (e) => console.log(e)
-
-    // // sse.addEventListener ( 'message', ( e ) => {
-
-    // //   console.log ( e )
-
-    // //   document.querySelector ( '#wra-content' )
-    // //     .innerText += e.data + '\n'
-
-    // // } )
 
 
 </script>
