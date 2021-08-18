@@ -1,47 +1,43 @@
 from django.shortcuts import render
+from  django.http import HttpResponse
 from .models import SavedFunction
-from alytics.tasks import count_functions
+from alytics.tasks import plot_func, celery_test
 import json
-from django.contrib import messages
 
 
 
+celery_results = []
 
-# def index_parse_post_request ( post ) :
-#     post = json.loads ( post.decode ( 'utf-8' ) )
-#     if 'newfunc' in post :
-#         post = post[ 'newfunc' ]
-#         SavedFunction.objects.create ( **post )
-#         print ( '>>> SavedFunction created <<<' )
-#         result = count_functions.delay ()
-#         print ( '>>> celery <<<', result )
-#         print ( 'where is result?' )
-#         print ( result.get ( timeout=1 ) )
-#     elif 'needupdate' in post :
-#         pass
-
-
-# TODO: this must be in admin side lol
 
 
 def index ( request ) :
-    # if request.body : return index_parse_post_request ( request.body )
+    global celery_results
 
     post = request.body
     if post :
         post = json.loads ( post.decode ( 'utf-8' ) )
+
         if 'newfunc' in post :
             post = post[ 'newfunc' ]
-            SavedFunction.objects.create ( **post )
-            print ( '>>> SavedFunction created <<<' )
-            result = count_functions.delay ()
-            print ( '>>> celery <<<', result )
-            print ( 'where is result?' )
-            r = result.get ( timeout=1 )
-            print ( r )
-            messages.success ( request, 'Form submission successful' )
-        else :
-            messages.success ( request, 'fuck you' )
+            o = SavedFunction.objects.create ( **post )
+            print ( o )
+            # TIP: celery task arguments and return value must be serializable, default serializer tho is json parser
+            celery_results += [ plot_func.delay ( o.id ) ]
+            # celery_results += [ celery_test.delay ( ) ]
+            # r = { 'updatefuncs' : [ html_color ( str ( f ),  ) for f in SavedFunction.objects.all () ] }
+            # return HttpResponse ( json.dumps ( r ), content_type='application/json; charset=utf-8' )
+            return HttpResponse ( 'object created' )
+
+
+        if 'updatefuncs' in post :
+            for f in SavedFunction.objects.all () :
+                print ( f )
+            r = { 'updatefuncs' : [ f.dictify () for f in SavedFunction.objects.all () ] }
+            return HttpResponse ( json.dumps ( r ), content_type='application/json; charset=utf-8' )
+
+
+
+        return HttpResponse ( 'unknown post request' )
 
 
     context = {

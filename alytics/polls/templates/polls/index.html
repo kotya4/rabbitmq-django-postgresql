@@ -3,25 +3,66 @@
 <link rel="stylesheet" type="text/css" href="{% static 'polls/style.css' %}">
 <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
 
-<button id="btn-update">Обновить</button>
 
+
+
+
+
+
+
+
+
+<button id="btn-update">Обновить</button>
 <button id="btn-add">Добавить</button>
-<div id="txt-btn-add-status"></div>
+<button id="btn-test">test</button>
+<div id="txt-btn-add-status" style="color:red"></div>
+
+
+
+
+
+
+
+
 
 <div id="wra-func">
   <textarea id="ta-func-textual" placeholder="функция"></textarea>
   <textarea id="ta-func-dt" placeholder="dt"></textarea>
   <textarea id="ta-func-interval" placeholder="interval"></textarea>
-  <button id="btn-func-push">push</button>
 </div>
 
 
-<div id="wra-content">
 
-</div>
+
+
+
+
+
+
+
+
+<div id="wra-content"></div>
+
+
+
+
+
+
 
 
 <script type="text/javascript">
+
+
+
+
+
+
+
+
+
+
+
+
 
   // django needs token placed by him in cookies to make ajax stuff
   const csrftoken = document.cookie.split ( ';' ) .map ( e => e.split ( '=' ) ) .find ( e => e[ 0 ] === 'csrftoken' )[ 1 ]
@@ -30,33 +71,36 @@
 
 
 
+
+
+
+
+
+
   document.querySelector ( '#btn-update' )
     .addEventListener ( 'click', () => {
-      // ajax.open( "POST", "ajax_test.asp" )
-      // ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-      // ajax.send("fname=Henry&lname=Ford");
+
+      post_updatefuncs ()
+
     } )
 
 
 
 
 
-  let btnAddState = 0
-  document.querySelector ( '#btn-add' )
-    .addEventListener ( 'click', () =>
-      ( btnAddState = btnAddState + 1 & 1 ) ?
-        document.querySelector ( '#wra-func' )
-          .classList.add ( 'show' )
-      : document.querySelector ( '#wra-func' )
-          .classList.remove ( 'show' ) )
-
-
-
-  document.querySelector ( '#btn-func-push' )
+  document.querySelector ( '#btn-test' )
     .addEventListener ( 'click', () => {
 
-      const status = document.querySelector ( '#txt-btn-add-status' )
-      status.innerText = ''
+      post_newfunc ( 'test' + Date.now (), 1, 1 )
+
+    } )
+
+
+
+
+
+  document.querySelector ( '#btn-add' )
+    .addEventListener ( 'click', () => {
 
       const inputs =
         [ document.querySelector ( '#ta-func-textual' )
@@ -64,34 +108,155 @@
         , document.querySelector ( '#ta-func-interval' )
         ]
 
+      post_newfunc ( ... inputs.map ( e => e.value ) )
 
-      const [ textual, dt, interval ] = inputs.map ( e => e.value )
-
-      if ( textual && dt && interval ) {
-
-        const ajax = new XMLHttpRequest ()
-        ajax.open ( 'POST', '/' )
-        ajax.setRequestHeader ( 'Content-type', 'application/json; charset=utf-8' )
-        ajax.setRequestHeader ( 'X-CSRFToken', csrftoken )
-        ajax.send ( JSON.stringify ( { newfunc: { textual, dt, interval } } ) )
-        // ajax.addEventListener ( 'readystatechange', () => {
-        //     if ( this.readyState === XMLHttpRequest.DONE && this.status === 200 ) {
-        //         // Request finished. Do processing here.
-        //     }
-        // } )
-
-        inputs.forEach ( e => e.value = '' )
-        document.querySelector ( '#wra-func' ).classList.remove ( 'show' )
-        btnAddState = 0
-
-      }
-      else {
-
-        status.innerText = 'textual && dt && interval must be filled properly'
-
-      }
+      inputs.forEach ( e => e.value = '' )
 
     } )
+
+
+
+
+
+
+
+
+
+
+
+function post_newfunc ( textual, dt, interval ) {
+
+  const status = document.querySelector ( '#txt-btn-add-status' )
+  status.innerText = ''
+
+  if ( textual && dt && interval ) {
+
+    const r = { newfunc: { textual, dt, interval } }
+
+    const ajax = new XMLHttpRequest ()
+    ajax.open ( 'POST', '/' )
+    ajax.setRequestHeader ( 'Content-type', 'application/json; charset=utf-8' )
+    ajax.setRequestHeader ( 'X-CSRFToken', csrftoken )
+    ajax.send ( JSON.stringify ( r ) )
+    ajax.addEventListener ( 'readystatechange', () => {
+      if ( ajax.readyState === XMLHttpRequest.DONE && ajax.status === 200 ) {
+
+        parse_server_response ( ajax.response, 'post_newfunc' )
+
+      }
+    } )
+
+  }
+
+  else {
+
+    status.innerText = 'post_newfunc :: ' + 'textual and dt and interval must be filled properly'
+
+  }
+
+}
+
+
+
+
+
+function post_updatefuncs () {
+
+  const status = document.querySelector ( '#txt-btn-add-status' )
+  status.innerText = ''
+
+  const r = { updatefuncs: 1 }
+
+  const ajax = new XMLHttpRequest ()
+  ajax.open ( 'POST', '/' )
+  ajax.setRequestHeader ( 'Content-type', 'application/json; charset=utf-8' )
+  ajax.setRequestHeader ( 'X-CSRFToken', csrftoken )
+  ajax.send ( JSON.stringify ( r ) )
+  ajax.addEventListener ( 'readystatechange', () => {
+    if ( ajax.readyState === XMLHttpRequest.DONE && ajax.status === 200 ) {
+
+      parse_server_response ( ajax.response, 'post_updatefuncs' )
+
+    }
+  } )
+
+
+
+}
+
+
+
+
+
+
+
+
+
+function parse_server_response ( r, calling='' ) {
+
+  const status = document.querySelector ( '#txt-btn-add-status' )
+  status.innerText = ''
+
+  try {
+
+    r = JSON.parse ( r )
+
+    if ( 'updatefuncs' in r ) {
+
+      const content = document.querySelector ( '#wra-content' )
+
+      content.innerHTML = ''
+
+      for ( let f of r[ 'updatefuncs' ].reverse () ) {
+
+        content.append ( func_node ( f ) )
+
+      }
+
+    }
+
+  } catch ( e ) {
+
+    status.innerText = calling + r
+
+  }
+
+
+}
+
+
+
+
+function func_node ( { id, textual, dt, interval, image, exception, datetime } ) {
+
+  const a = document.createElement ( 'span' )
+  a.innerText = JSON.stringify ( { id, textual, dt, interval, datetime } )
+
+  const b = document.createElement ( 'span' )
+
+  if ( image ) {
+
+    img = new Image ()
+    img.src = 'data:image/png;base64,' + image
+    b.append ( img )
+
+  } else if ( exception ) {
+
+    b.style.color = 'hotpink'
+    b.innerText = exception
+
+  } else {
+
+    b.style.color = 'lightblue'
+    b.innerText = 'in queue'
+
+  }
+
+  const w = document.createElement ( 'div' )
+  w.append ( a, b )
+  return w
+
+}
 
 
 
