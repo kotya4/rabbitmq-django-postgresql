@@ -8,13 +8,15 @@
 
 
 
-
+<div style="opacity:0.5">
+  TIP: pure django не умеет websocket/sse, т.к. неасинхронный. это не admin, то и messages использовать нельзя, поэтому обновлять нужно вручную
+</div>
 
 
 
 <button id="btn-update">Обновить</button>
 <button id="btn-add">Добавить</button>
-<button id="btn-test">test</button>
+<button id="btn-test">SPAWN y=t*t + 2/t, interval=1, dt=1</button>
 <div id="txt-btn-add-status" style="color:red"></div>
 
 
@@ -91,7 +93,7 @@
   document.querySelector ( '#btn-test' )
     .addEventListener ( 'click', () => {
 
-      post_newfunc ( 'test' + Date.now (), 1, 1 )
+      post_newfunc ( 'y=t*t + 2/t', 1, 1 )
 
     } )
 
@@ -119,12 +121,21 @@
 
 
 
+function format_func ( s ) {
+
+  return s.replace ( /^[yY]\s*=/, '' )
+
+}
+
 
 
 
 
 
 function post_newfunc ( textual, dt, interval ) {
+
+  textual = format_func ( textual )
+
 
   const status = document.querySelector ( '#txt-btn-add-status' )
   status.innerText = ''
@@ -203,15 +214,21 @@ function parse_server_response ( r, calling='' ) {
 
     if ( 'updatefuncs' in r ) {
 
+      const table = document.createElement ( 'table' )
+
+      const head_tr = document.createElement ( 'tr' )
+      head_tr.append ( ... [ 'id', 'textual', 'dt', 'interval', 'datetime', 'status' ].map ( e => {
+        const th = document.createElement ( 'th' )
+        th.innerText = e
+        return th
+      } ) )
+
+      table.append ( head_tr, ... r[ 'updatefuncs' ].reverse () .map ( e => func_tr ( e ) ) )
+
+
       const content = document.querySelector ( '#wra-content' )
-
       content.innerHTML = ''
-
-      for ( let f of r[ 'updatefuncs' ].reverse () ) {
-
-        content.append ( func_node ( f ) )
-
-      }
+      content.append ( table )
 
     }
 
@@ -227,6 +244,52 @@ function parse_server_response ( r, calling='' ) {
 
 
 
+
+function func_tr ( { id, textual, dt, interval, image, exception, datetime } ) {
+
+
+  const tds = [ id, textual, dt, interval, datetime ].map ( e => {
+    td = document.createElement ( 'td' )
+    td.innerText = e
+    return td
+  } )
+
+
+  const b = document.createElement ( 'td' )
+
+
+  if ( image ) {
+
+    img = new Image ()
+    img.src = 'data:image/png;base64,' + image
+    b.append ( img )
+
+  } else if ( exception ) {
+
+    b.style.color = 'hotpink'
+    b.innerText = exception
+
+  } else {
+
+    b.style.color = 'lightblue'
+    b.innerText = 'in queue or forgotten'
+
+  }
+
+
+  const tr = document.createElement ( 'tr' )
+  tr.append ( ...tds, b )
+
+
+  return tr
+}
+
+
+
+
+
+
+// deprecated
 function func_node ( { id, textual, dt, interval, image, exception, datetime } ) {
 
   const a = document.createElement ( 'span' )
@@ -248,7 +311,7 @@ function func_node ( { id, textual, dt, interval, image, exception, datetime } )
   } else {
 
     b.style.color = 'lightblue'
-    b.innerText = 'in queue'
+    b.innerText = 'in queue or forgotten'
 
   }
 

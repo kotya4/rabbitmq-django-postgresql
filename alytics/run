@@ -1,3 +1,0 @@
-bash <( echo 'celery -A alytics worker --loglevel=INFO' )
-echo 'hello'
-#bash <( echo 'python' )
