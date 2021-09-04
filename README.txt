@@ -7,6 +7,9 @@ sumarized by me:
   типа прикольно, что есть тема с миграцией, но то что джанга неасинхронная - это конечно полная залупа,
   ни sse не поднять, ни вебсокет без танцев imo
   
+  не забудьте грохнуть автозапуск rabbitmq:
+  https://stackoverflow.com/questions/34672549/rabbitmq-windows-start-server-automatically
+  https://serverfault.com/questions/378534/how-to-stop-rabbitmq-starting-on-ubuntu-bootup
 
 
 
